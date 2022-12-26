@@ -1,0 +1,9 @@
+DROP TABLE IF EXISTS user_info;
+
+CREATE TABLE user_info (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    ip VARCHAR NOT NULL,
+    brand VARCHAR NOT NULL,
+    request_url VARCHAR NOT NULL,
+    response VARCHAR NOT NULL
+);
