@@ -1,4 +1,4 @@
-from flask import Flask, request, json, render_template
+from flask import Flask, request, json
 from Enums.brand_enum import BrandEnum
 from Model.user_info import UserInfo
 from util import related_brand
@@ -19,14 +19,21 @@ logging.basicConfig(filename="logger.log",
                     filemode='w')
 logger = logging.getLogger()
 
+PREFIX = "/fee/api/v1"
 
-@app.route('/scrap', methods=['GET', 'POST'])
+
+@app.route(PREFIX + '/scrap', methods=['GET', 'POST'])
 def scrap():
     if request.method == 'POST':
-        json_body = json.loads(request.data)
-        parse_url = str(json_body['url'])
-        max_comment = int(json_body['comment_count'])
-        brand = parse_url.split(".")[1].upper()
+        logging.info(f"SCRAP starting")
+
+        try:
+            json_body = json.loads(request.data)
+            parse_url = str(json_body['url'])
+            max_comment = int(json_body['comment_count'])
+            brand = parse_url.split(".")[1].upper()
+        except (Exception,):
+            return "Wrong body", 400
 
         try:
             brand_enum = BrandEnum[brand]
@@ -42,12 +49,16 @@ def scrap():
         user = UserInfo(request.environ.get('HTTP_X_REAL_IP', request.remote_addr),
                         BrandEnum[brand].name, parse_url, comment_json)
 
-        con.execute("INSERT INTO user_info (ip, brand, request_url, response) VALUES(?, ?, ?, ?)",
-                    (str(user.ip), str(user.brand), str(user.request_url), str(user.response)))
+        try:
+            con.execute("INSERT INTO user_info (ip, brand, request_url, response) VALUES(?, ?, ?, ?)",
+                        (str(user.ip), str(user.brand), str(user.request_url), str(user.response)))
 
-        con.commit()
-        logging.info(user.__str__())
+            con.commit()
+        except (Exception,):
+            return f"Database insert error"
 
+        logging.info(f"POST method user: {user.__str__()}")
+        logging.info("SCRAP FINISHED")
         return comments
 
     elif request.method == 'GET':
@@ -64,7 +75,8 @@ def scrap():
             }
 
             response.append(res)
-
+        logging.info(f"GET method response: {response}")
+        logger.info(f"GET method response: {response}")
         return response, 200
 
 
