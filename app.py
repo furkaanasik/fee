@@ -1,4 +1,4 @@
-from flask import Flask, request, json
+from flask import Flask, request, json, jsonify
 from Enums.brand_enum import BrandEnum
 from Model.user_info import UserInfo
 from util import related_brand
@@ -25,7 +25,7 @@ PREFIX = "/fee/api/v1"
 @app.route(PREFIX + '/scrap', methods=['GET', 'POST'])
 def scrap():
     if request.method == 'POST':
-        logging.info(f"SCRAP starting")
+        logger.info(f"SCRAP starting")
 
         try:
             json_body = json.loads(request.data)
@@ -57,8 +57,8 @@ def scrap():
         except (Exception,):
             return f"Database insert error"
 
-        logging.info(f"POST method user: {user.__str__()}")
-        logging.info("SCRAP FINISHED")
+        logger.info(f"POST method user: {user.__str__()}")
+        logger.info("SCRAP FINISHED")
         return comments
 
     elif request.method == 'GET':
@@ -75,9 +75,8 @@ def scrap():
             }
 
             response.append(res)
-        logging.info(f"GET method response: {response}")
         logger.info(f"GET method response: {response}")
-        return response, 200
+        return jsonify(response), 200
 
 
 if __name__ == '__main__':
